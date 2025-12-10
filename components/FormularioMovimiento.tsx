@@ -10,6 +10,9 @@ export default function FormularioMovimiento() {
   const [monto, setMonto] = useState(0);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [tipo, setTipo] = useState('Gasto'); // Gasto por defecto
+  const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]); // Fecha de hoy por defecto
+  // ...
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); 
@@ -19,8 +22,9 @@ export default function FormularioMovimiento() {
     const nuevoMovimiento = { 
       concepto: concepto, 
       monto: monto,
-      fecha: new Date().toISOString().split('T')[0], // Fecha de hoy
-      id_cuenta: 1
+      id_cuenta: 1,
+      tipo: tipo, // <--- AÑADIDO
+      fecha: fecha, // <--- AHORA USA EL ESTADO DE FECHA
     };
 
     const { error } = await supabase
@@ -74,6 +78,34 @@ export default function FormularioMovimiento() {
             className="border border-gray-400 rounded w-full py-2 px-3 text-gray-700"
           />
         </div>
+
+        {/* Campo Tipo (Select) */}
+        <div className="mb-4">
+          <label className="block text-gray-700 text-sm font-bold mb-2">Tipo:</label>
+          <select
+            value={tipo}
+            onChange={(e) => setTipo(e.target.value)}
+            required
+            className="shadow border rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="Gasto">Gasto</option>
+            <option value="Ingreso">Ingreso</option>
+          </select>
+        </div>
+
+        {/* Campo Fecha (Date Picker) */}
+        <div className="mb-6">
+          <label className="block text-gray-700 text-sm font-bold mb-2">Fecha:</label>
+          <input
+            type="date"
+            value={fecha}
+            onChange={(e) => setFecha(e.target.value)}
+            required
+            className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+{/* ... resto del formulario y botón */}
 
         {/* Botón */}
         <button

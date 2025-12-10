@@ -1,21 +1,21 @@
 // Archivo: app/page.tsx
-// Server Component: Se enfoca en la obtención de datos (rápido y seguro).
 
 import { supabase } from '@/utils/supabase';
-import TablaMovimientos from '@/components/TablaMovimientos'; // Componente para la visualización
-import FormularioMovimiento from '@/components/FormularioMovimiento'; // Componente para la inserción
-import BalanceSummary from '@/components/BalanceSummary'; // <--- NUEVA IMPORTACIÓN
-// ...
-export default async function Home() {
+import FormularioMovimiento from '@/components/FormularioMovimiento'; 
+import MovimientoData from '@/components/MovimientoData'; // Se queda
+// import TablaMovimientos from '@/components/TablaMovimientos'; // Ya no se necesita aquí
+// import BalanceSummary from '@/components/BalanceSummary'; // Ya no se necesita aquí
+// import FiltrosMovimientos from '@/components/FiltrosMovimientos'; // Ya no se necesita aquí
 
-  // --- 1. Lógica de Lectura de Datos ---
-  // Reemplaza 'movimientos' con el nombre exacto de tu tabla de datos real
-  const { data: transacciones, error } = await supabase
-    .from('movimientos') 
-    .select('*')
-    .order('fecha', { ascending: false }); 
+// Eliminamos la interfaz SearchParams de aquí
+// interface SearchParams { ... }
 
-  // --- 2. Renderizado de la UI (Estructura Modular) ---
+// Home ya no necesita ser async ni recibir searchParams
+export default async function Home() { 
+
+  // Chequeo de conexión simple
+  const { error } = await supabase.from('movimientos').select('id').limit(1);
+
   return (
     <main className="p-8 max-w-7xl mx-auto">
       <h1 className="text-4xl font-extrabold mb-8 text-gray-800">
@@ -26,21 +26,19 @@ export default async function Home() {
       <div className={`p-4 rounded-lg text-sm mb-8 ${error ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
         {error ? `Error al cargar datos: ${error.message}` : '¡Conexión a Supabase Exitosa!'}
       </div>
-      {/* AQUI VA EXACTAMENTE EL BALANCE */}
-      <BalanceSummary transacciones={transacciones} />
-      {/* Estructura principal: Formulario arriba, Tabla abajo */}
+      
+      {/* Estructura principal: Formulario a la izquierda */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1">
-          {/* A. Componente para Añadir Datos (Es un Cliente Component) */}
           <FormularioMovimiento />
         </div>
         
+        {/* El componente MovimientoData ahora se encarga de sí mismo */}
         <div className="lg:col-span-2">
-          {/* B. Componente para Visualizar Datos (Es un Server Component) */}
-          <TablaMovimientos data={transacciones} />
+          {/* El error se resolvió delegando la lectura al cliente: */}
+          <MovimientoData /> 
         </div>
       </div>
-      
     </main>
   );
 }
