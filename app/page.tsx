@@ -1,58 +1,46 @@
-// Archivo: mi-web-finanzas/app/page.tsx
-import { supabase } from '@/utils/supabase'; // Importamos nuestro cliente Supabase
+// Archivo: app/page.tsx
+// Server Component: Se enfoca en la obtención de datos (rápido y seguro).
 
-// Definición del Tipo de Dato (TypeScript) para lo que esperamos recibir
-// Esto nos da seguridad y autocompletado en VS Code
-interface TipoActivo {
-  id: number;
-  nombre: string;
-}
+import { supabase } from '@/utils/supabase';
+import TablaMovimientos from '@/components/TablaMovimientos'; // Componente para la visualización
+import FormularioMovimiento from '@/components/FormularioMovimiento'; // Componente para la inserción
+import BalanceSummary from '@/components/BalanceSummary'; // <--- NUEVA IMPORTACIÓN
+// ...
+export default async function Home() {
 
-// Componente principal de la página (será nuestro Dashboard inicial)
-export default async function HomePage() {
-  
-  // 1. Lógica de Lectura de la Base de Datos
-  const { data: tiposActivo, error } = await supabase
-    .from('tipos_activo') // Nombre de la tabla que creamos
-    .select('id, nombre') // Columnas que queremos seleccionar
-    .order('id', { ascending: true }); // Ordenar por ID
+  // --- 1. Lógica de Lectura de Datos ---
+  // Reemplaza 'movimientos' con el nombre exacto de tu tabla de datos real
+  const { data: transacciones, error } = await supabase
+    .from('movimientos') 
+    .select('*')
+    .order('fecha', { ascending: false }); 
 
-  // Manejo de errores de Supabase
-  if (error) {
-    console.error("Error al cargar los tipos de activo:", error);
-    return <div>Error al conectar con la base de datos: {error.message}</div>;
-  }
-
-  // Si la consulta fue exitosa
-  const tipos = tiposActivo as TipoActivo[] || [];
-
-  // 2. Renderizado de la Interfaz (Frontend)
+  // --- 2. Renderizado de la UI (Estructura Modular) ---
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6">Estado de la Conexión a Supabase</h1>
-      
-      {tipos.length > 0 ? (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-          <strong className="font-bold">¡Conexión Exitosa!</strong>
-          <span className="block sm:inline"> Se han recuperado datos de la tabla `tipos_activo`.</span>
-        </div>
-      ) : (
-        <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative" role="alert">
-          <strong className="font-bold">Advertencia:</strong>
-          <span className="block sm:inline"> Se ha conectado a Supabase, pero la tabla está vacía.</span>
-        </div>
-      )}
+    <main className="p-8 max-w-7xl mx-auto">
+      <h1 className="text-4xl font-extrabold mb-8 text-gray-800">
+        Dashboard de Finanzas
+      </h1>
 
-      <h2 className="text-xl font-semibold mt-8 mb-4">Tipos de Activos Cargados:</h2>
-      <ul className="list-disc pl-5">
-        {tipos.map((tipo) => (
-          <li key={tipo.id} className="text-lg">
-            {tipo.id}. {tipo.nombre}
-          </li>
-        ))}
-      </ul>
+      {/* Muestra el estado de la conexión */}
+      <div className={`p-4 rounded-lg text-sm mb-8 ${error ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+        {error ? `Error al cargar datos: ${error.message}` : '¡Conexión a Supabase Exitosa!'}
+      </div>
+      {/* AQUI VA EXACTAMENTE EL BALANCE */}
+      <BalanceSummary transacciones={transacciones} />
+      {/* Estructura principal: Formulario arriba, Tabla abajo */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-1">
+          {/* A. Componente para Añadir Datos (Es un Cliente Component) */}
+          <FormularioMovimiento />
+        </div>
+        
+        <div className="lg:col-span-2">
+          {/* B. Componente para Visualizar Datos (Es un Server Component) */}
+          <TablaMovimientos data={transacciones} />
+        </div>
+      </div>
       
-      <p className="mt-6 text-gray-500">Este es el inicio de tu aplicación de finanzas personales. ¡Aún faltan estilos!</p>
-    </div>
+    </main>
   );
 }
